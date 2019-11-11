@@ -80,7 +80,7 @@
 
 - (void)_addDelegate:(id)delegate priority:(NSInteger)priority weakReference:(BOOL)weakReference
 {
-    if (!delegate) return;
+    if (!delegate || (delegate == self)) return;
     NSString *indentifier = [self indentifierForPriority:priority weakReference:weakReference];
     NSUInteger index = -1;
     BOOL havePlace = NO;
@@ -187,6 +187,19 @@
     self.normalIndex = 0;
 }
 
+- (void)removeAllDelegates
+{
+    for (int i = 0; i < self.delegates.count; i++)
+    {
+        NSHashTable *container = self.delegates[i];
+        [container removeAllObjects];
+    }
+    
+    [self.delegates removeAllObjects];
+    [self.indentifiers removeAllObjects];
+    self.normalIndex = 0;
+}
+
 - (NSString *)indentifierForPriority:(NSInteger)priority weakReference:(BOOL)weakReference
 {
     NSString *referenceIndentifier = weakReference ? @"_w" : @"_s";
@@ -200,6 +213,7 @@
 }
 
 #pragma mark - 消息转发部分
+
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)selector
 {
     dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
@@ -333,6 +347,10 @@
 
 
 @end
+
+#pragma mark - Overrides
+
+
 
 /** returnValue在64位系统下的值：
  v ==> void
